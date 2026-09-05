@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ML EC-3 Endsem — Night-Before Crash Course</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#0f1117; --card:#171a23; --card2:#1d2130; --text:#e8eaf0; --muted:#9aa3b5;
+    --accent:#7c9cff; --accent2:#ffb454; --good:#4ade80; --bad:#ff6b6b;
+    --nb:#7c9cff; --knn:#ffb454; --svm:#4ade80; --ens:#ff9ecb; --uns:#a78bfa; --eval:#38bdf8; --reg:#fb923c; --dt:#f472b6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#0b0d13,#11141d 20%); color:var(--text); line-height:1.55;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:18px 16px 60px;}
+  header{padding:28px 0 14px;text-align:center;}
+  header h1{font-size:1.6rem;margin:0 0 6px;background:linear-gradient(90deg,#7c9cff,#4ade80);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  header p{color:var(--muted);margin:4px 0;font-size:0.95rem;}
+  .badge{display:inline-block;background:#ff6b6b22;color:#ff6b6b;border:1px solid #ff6b6b55;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;margin-top:8px;}
+
+  .panel{background:var(--card);border:1px solid #262a38;border-radius:14px;padding:16px 18px;margin:16px 0;}
+  .panel h2{margin-top:0;font-size:1.15rem;}
+
+  table.pattern{width:100%;border-collapse:collapse;font-size:0.88rem;margin-top:8px;}
+  table.pattern th, table.pattern td{padding:7px 8px;border-bottom:1px solid #262a38;text-align:left;}
+  table.pattern th{color:var(--muted);font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.03em;}
+  .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;}
+
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .toc a{text-decoration:none;color:var(--text);background:var(--card2);border:1px solid #2c3142;padding:6px 12px;border-radius:20px;font-size:0.82rem;}
+  .toc a:hover{border-color:var(--accent);}
+
+  .topic{border-radius:16px;padding:18px 18px 8px;margin:26px 0;border:1px solid #262a38;background:var(--card);}
+  .topic h2{margin-top:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;}
+  .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
+  .odds{font-size:0.8rem;color:var(--muted);font-weight:500;margin-left:auto;background:var(--card2);padding:3px 10px;border-radius:20px;}
+
+  .analogy{background:#00000030;border-left:4px solid var(--accent2);padding:10px 14px;border-radius:8px;margin:12px 0;font-size:0.94rem;}
+  .analogy b{color:var(--accent2);}
+
+  details{background:var(--card2);border:1px solid #2c3142;border-radius:10px;margin:12px 0;padding:0;overflow:hidden;}
+  details summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary:before{content:"▸";display:inline-block;transition:transform 0.15s;color:var(--accent);}
+  details[open] summary:before{transform:rotate(90deg);}
+  details .inner{padding:2px 16px 16px;border-top:1px solid #2c3142;}
+
+  .steps{counter-reset:step;}
+  .step{position:relative;padding:8px 0 8px 34px;border-bottom:1px dashed #2c3142;}
+  .step:last-child{border-bottom:none;}
+  .step:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0b0d13;font-size:0.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+
+  code, .math{font-family:"SFMono-Regular",Consolas,Menlo,monospace;background:#00000040;padding:1px 6px;border-radius:5px;font-size:0.9em;}
+  pre{background:#00000040;padding:10px 12px;border-radius:8px;overflow-x:auto;font-size:0.85rem;}
+
+  table.data{border-collapse:collapse;margin:10px 0;font-size:0.85rem;}
+  table.data th, table.data td{border:1px solid #2c3142;padding:5px 10px;text-align:center;}
+  table.data th{background:#00000030;}
+
+  .answer-box{background:linear-gradient(135deg,#132018,#0f1117);border:1px solid #2d5a3d;border-radius:10px;padding:10px 14px;margin-top:10px;}
+  .answer-box b{color:var(--good);}
+
+  .practice{border:1px dashed #3a3f52;border-radius:10px;padding:14px;margin-top:14px;background:#00000020;}
+  .practice h4{margin:0 0 8px;color:var(--accent2);font-size:0.95rem;}
+
+  .footer-tips{background:var(--card);border-radius:14px;padding:16px 18px;margin:26px 0;border:1px solid #262a38;}
+  .footer-tips ul{padding-left:20px;margin:8px 0;}
+  .footer-tips li{margin:6px 0;}
+
+  .cheat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+  @media(max-width:640px){.cheat{grid-template-columns:1fr;}}
+  .cheatcard{background:var(--card2);border:1px solid #2c3142;border-radius:10px;padding:10px 12px;font-size:0.85rem;}
+  .cheatcard h4{margin:0 0 6px;font-size:0.85rem;color:var(--accent);}
+
+  .src{font-size:0.75rem;color:var(--muted);margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Machine Learning · EC-3 Endsem</h1>
+  <p>A no-fluff, night-before walkthrough built from your last 6 years of endsem papers</p>
+  <span class="badge">⏰ Exam is tomorrow — read top to bottom, don't skip the analogies</span>
+</header>
+
+<div class="panel">
+  <h2>📊 What actually shows up (from your papers)</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-top:-6px;">I read through the papers in your Drive's <b>ML → Previous year question paper</b> folder — 2021 Regular &amp; Makeup, 2023-24 Regular &amp; Makeup, 2024-25 Regular &amp; Makeup, March 2026 Regular &amp; Makeup, plus the official "Sample QP" pattern sheet. One official pattern note was even printed right on a paper — it lines up almost exactly with what I found by hand-counting every question:</p>
+  <table class="pattern">
+    <tr><th>Topic</th><th>Typical weight</th><th>How often it appeared</th></tr>
+    <tr><td>Bayesian Learning (Naive Bayes, MLE/MAP)</td><td>4–8 marks</td><td><span class="tag" style="background:#7c9cff33;color:#7c9cff">Every single paper</span></td></tr>
+    <tr><td>Instance-based learning (k-NN, locally weighted regression)</td><td>4–8 marks</td><td><span class="tag" style="background:#ffb45433;color:#ffb454">Every single paper</span></td></tr>
+    <tr><td>SVM (margin, support vectors, kernels, KKT)</td><td>4–8 marks</td><td><span class="tag" style="background:#4ade8033;color:#4ade80">Almost every paper</span></td></tr>
+    <tr><td>Ensemble Learning (Bagging/RF/AdaBoost/GBM)</td><td>4–8 marks</td><td><span class="tag" style="background:#ff9ecb33;color:#ff9ecb">Almost every paper</span></td></tr>
+    <tr><td>Unsupervised (K-Means, GMM/EM, K-Modes)</td><td>4–8 marks</td><td><span class="tag" style="background:#a78bfa33;color:#a78bfa">Most papers</span></td></tr>
+    <tr><td>Model Evaluation / bias-variance / multicollinearity</td><td>4–8 marks</td><td><span class="tag" style="background:#38bdf833;color:#38bdf8">Most papers</span></td></tr>
+    <tr><td>Regularization (Ridge/Lasso), Decision Trees + pruning</td><td>3–7 marks</td><td><span class="tag" style="background:#fb923c33;color:#fb923c">Most recent (2024-26) papers</span></td></tr>
+  </table>
+  <p style="font-size:0.85rem;color:var(--muted);margin-bottom:2px;"><b>Trend to notice:</b> the 2024-25 and March-2026 papers moved from short textbook-style questions to <b>business case-studies</b> (bank/telecom/fintech scenario → compute something). Same underlying math, wordier wrapper. Expect that style tomorrow.</p>
+</div>
+
+<div class="panel">
+  <h2>🧭 Jump to a topic</h2>
+  <div class="toc">
+    <a href="#nb">① Naive Bayes</a>
+    <a href="#knn">② k-NN &amp; Locally Weighted Reg.</a>
+    <a href="#svm">③ SVM</a>
+    <a href="#ens">④ Ensembles</a>
+    <a href="#uns">⑤ Clustering</a>
+    <a href="#eval">⑥ Model Evaluation</a>
+    <a href="#reg">⑦ Regularization</a>
+    <a href="#dt">⑧ Decision Trees</a>
+    <a href="#cheat">📎 Formula sheet</a>
+    <a href="#tips">🎯 Exam-day plan</a>
+  </div>
+</div>
+
+<!-- ============ TOPIC 1: NAIVE BAYES ============ -->
+<div class="topic" id="nb">
+  <h2><span class="dot" style="background:var(--nb)"></span>① Bayesian Learning — Naive Bayes <span class="odds">High probability tomorrow</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — the office guessing game:</b> Someone walks into your office soaking wet and carrying an umbrella. You didn't see the weather, but you <i>guess</i> it's raining outside. Why? Because "wet + umbrella" is way more common when it rains than when it doesn't. Naive Bayes does exactly this: it looks at each clue (feature) separately, asks "how likely is this clue if the answer were A? What about if the answer were B?", multiplies all the clue-likelihoods together for each candidate answer, and picks whichever answer comes out on top. "Naive" just means it assumes the clues don't affect each other (wetness and umbrella-carrying are judged independently, even though in real life they're related) — it's a simplification that works surprisingly well.
+  </div>
+
+  <details open>
+    <summary>Concept in plain English + the formula</summary>
+    <div class="inner">
+      <p>We want <span class="math">P(class | features)</span>. Bayes' rule flips this into things we can actually count from training data:</p>
+      <pre>P(class | features) ∝ P(class) × P(feature₁ | class) × P(feature₂ | class) × ...</pre>
+      <p>Two flavours show up in your papers:</p>
+      <ul>
+        <li><b>Categorical / word-count features →</b> use plain counts, e.g. P(word|class) = count(word in class)/(total words in class). If a word never appeared in a class, <b>Laplace smoothing</b> adds +1 to every count so nothing becomes a hard zero: P(word|class) = (count+1)/(total words + vocabulary size).</li>
+        <li><b>Continuous features (age, hours, price) →</b> use the <b>Gaussian / Normal formula</b> — you assume that feature follows a bell curve for each class, using that class's mean μ and variance σ²:
+        <pre>P(x | class) = 1/√(2πσ²) × exp( −(x−μ)² / (2σ²) )</pre></li>
+      </ul>
+      <p>Whichever class gives the bigger final product wins. You never need the exact probability — just which side is bigger — so people usually say "∝" (proportional to) and skip the normalizing denominator.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Worked pattern from your papers (mixed Gaussian + categorical) — study hours & gender → Pass/Fail</summary>
+    <div class="inner">
+      <p>This exact style appeared in <b>two different papers</b> (2024-25 Makeup, and the sample bank). One numeric feature (Gaussian) + one categorical feature (plain proportion), multiplied together with the prior. The recipe:</p>
+      <div class="steps">
+        <div class="step"><b>Priors:</b> P(class) = (# training rows in that class) / (total rows).</div>
+        <div class="step"><b>Numeric feature:</b> compute mean & variance of that feature <i>separately for each class</i>, then plug the query's value into the Gaussian formula above for each class.</div>
+        <div class="step"><b>Categorical feature:</b> just count how often the query's category (e.g. "Male") shows up within each class, as a fraction.</div>
+        <div class="step"><b>Multiply:</b> P(class)×P(numeric|class)×P(categorical|class) for every class.</div>
+        <div class="step"><b>Compare:</b> bigger number wins. State the winner clearly — many marks are given just for correctly stating "Predicted class = X" at the end.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question — try it before you look</h4>
+    <p>An event-planning app wants to predict whether a user will <b>Attend</b> a suggested event, using <i>Age</i> (numeric) and <i>Has Car</i> (Yes/No). Training data:</p>
+    <table class="data">
+      <tr><th>Attend?</th><th>Age</th><th>Has Car</th></tr>
+      <tr><td>Yes</td><td>22</td><td>Yes</td></tr>
+      <tr><td>Yes</td><td>25</td><td>No</td></tr>
+      <tr><td>Yes</td><td>28</td><td>Yes</td></tr>
+      <tr><td>Yes</td><td>24</td><td>Yes</td></tr>
+      <tr><td>No</td><td>30</td><td>No</td></tr>
+      <tr><td>No</td><td>35</td><td>No</td></tr>
+      <tr><td>No</td><td>40</td><td>Yes</td></tr>
+    </table>
+    <p>Query: <b>Age = 26, Has Car = Yes</b>. Predict Attend using Gaussian Naive Bayes (population variance, divide by n).</p>
+    <details>
+      <summary>Show full solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">Priors: P(Yes)=4/7=0.5714, P(No)=3/7=0.4286.</div>
+          <div class="step">Yes-class ages {22,25,28,24}: mean=24.75, variance=Σ(x−μ)²/4 = 18.75/4 = <b>4.6875</b>.</div>
+          <div class="step">No-class ages {30,35,40}: mean=35, variance=50/3=<b>16.667</b>.</div>
+          <div class="step">Gaussian at x=26 for Yes: exponent=−(26−24.75)²/(2×4.6875)=−0.1667 → exp=0.8465; coefficient=1/√(2π×4.6875)=0.1843 → <b>P(26|Yes)=0.1560</b>.</div>
+          <div class="step">Gaussian at x=26 for No: exponent=−(26−35)²/(2×16.667)=−2.43 → exp=0.0880; coefficient=0.0977 → <b>P(26|No)=0.0086</b>.</div>
+          <div class="step">Car=Yes fraction: within Yes class, 3 of 4 have car → 0.75. Within No class, 1 of 3 have car → 0.333.</div>
+          <div class="step">Multiply: P(Yes|X) ∝ 0.5714×0.1560×0.75 = <b>0.0669</b>. P(No|X) ∝ 0.4286×0.0086×0.333 = <b>0.00123</b>.</div>
+        </div>
+        <div class="answer-box"><b>Predicted class: Attend = YES</b> — P(Yes|X) is roughly 54× bigger than P(No|X), driven mostly by the Gaussian term (26 is much closer to the "Yes" age cluster) and reinforced by owning a car.</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: 2024-25 Makeup Q2, 2024-25 Regular Q4, 2023-24 Regular Q1, 2023-24 Makeup Q1, Sample QP Q1</p>
+</div>
+
+<!-- ============ TOPIC 2: KNN ============ -->
+<div class="topic" id="knn">
+  <h2><span class="dot" style="background:var(--knn)"></span>② Instance-Based Learning — k-NN &amp; Locally Weighted Regression <span class="odds">High probability tomorrow</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — asking your neighbours for advice:</b> You just moved to a new street and want to guess your house's value. You don't build a formula — you just walk over and ask the k nearest houses what they're worth, then average their answers. If one neighbour's house is literally next door and another is three streets away, you'd trust the next-door one more — that's <b>distance weighting</b> (weight = 1/distance², so very close neighbours dominate). "Locally weighted regression" is the same idea but instead of just averaging, you fit a small straight line through your nearby neighbours to make a smarter local guess.
+  </div>
+
+  <details open>
+    <summary>Concept + the exact recipe your papers use</summary>
+    <div class="inner">
+      <div class="steps">
+        <div class="step"><b>Normalize first</b> if features have different scales (e.g. Age in years vs Income in ₹). Min-max: <span class="math">x' = (x − min)/(max − min)</span>.</div>
+        <div class="step"><b>Pick a distance measure:</b> Euclidean for pure numeric data. <b>Gower distance</b> when the dataset mixes numeric + categorical + ordinal columns (average the per-attribute distances). Manhattan when explicitly told to use it.</div>
+        <div class="step"><b>Find the k closest</b> training points to the query.</div>
+        <div class="step"><b>Vote / average.</b> Plain k-NN classification = majority vote. Plain k-NN regression = mean of the k neighbours' y-values. <b>Weighted</b> k-NN multiplies each neighbour's vote/value by a weight, usually <span class="math">w = 1/d²</span>, before combining.</div>
+        <div class="step"><b>(Locally weighted regression only)</b> Fit ŷ = w₀+w₁x₁+w₂x₂ using only the nearby points, apply one gradient-descent step: <span class="math">w_new = w_old + α·Σ K(d)·(y−ŷ)·x</span>.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>A website wants to predict <i>Converted</i> (Yes/No) for a new visitor using <i>(TimeOnSite, PagesViewed)</i>. Training data:</p>
+    <table class="data">
+      <tr><th>Point</th><th>x₁</th><th>x₂</th><th>Class</th></tr>
+      <tr><td>C1</td><td>1</td><td>2</td><td>Converted</td></tr>
+      <tr><td>C2</td><td>2</td><td>4</td><td>Not Converted</td></tr>
+      <tr><td>C3</td><td>4</td><td>1</td><td>Not Converted</td></tr>
+      <tr><td>C4</td><td>5</td><td>5</td><td>Not Converted</td></tr>
+      <tr><td>C5</td><td>2</td><td>2</td><td>Converted</td></tr>
+    </table>
+    <p>Query Q=(2,3). Use <b>distance-weighted 3-NN</b> with kernel <span class="math">K(d)=1/d²</span> and Euclidean distance.</p>
+    <details>
+      <summary>Show full solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">Distances from Q(2,3): C1=√(1+1)=1.414; C2=√(0+1)=1.000; C3=√(4+4)=2.828; C4=√(9+4)=3.606; C5=√(0+1)=1.000.</div>
+          <div class="step">3 nearest: C2(1.000, Not Converted), C5(1.000, Converted), C1(1.414, Converted).</div>
+          <div class="step">Weights = 1/d²: w(C2)=1/1²=1, w(C5)=1/1²=1, w(C1)=1/1.414²=0.5.</div>
+          <div class="step">Score(Converted) = w(C5)+w(C1) = 1 + 0.5 = <b>1.5</b>. Score(Not Converted) = w(C2) = <b>1.0</b>.</div>
+        </div>
+        <div class="answer-box"><b>Predicted: Converted</b> (score 1.5 vs 1.0). Note plain majority vote (2 Converted vs 1 Not) already agrees — always show <i>both</i> the plain-vote and weighted-vote numbers in your answer sheet, examiners give marks for demonstrating the distinction even when the final label doesn't change.</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: March-2026 Regular Q2 &amp; Makeup Q3, 2024-25 Regular Q3, 2021 Makeup Q1, Sample QP (Glasgow Coma Scale question)</p>
+</div>
+
+<!-- ============ TOPIC 3: SVM ============ -->
+<div class="topic" id="svm">
+  <h2><span class="dot" style="background:var(--svm)"></span>③ Support Vector Machines <span class="odds">High probability tomorrow</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — the widest road between two rival towns:</b> Imagine two towns (the two classes) and you need to build a straight road (the decision boundary) between them. You don't just draw any road — you draw the <b>widest possible road</b> that doesn't touch either town. The houses right on the edge of each town, touching the road's shoulders, are the <b>support vectors</b> — they're the only houses that matter for deciding where the road goes; houses deep inside a town could be bulldozed and the road wouldn't move. A bigger road width = more confidence that new houses (test points) will land on the correct side.
+  </div>
+
+  <details open>
+    <summary>The 5-line geometric method your papers actually expect</summary>
+    <div class="inner">
+      <div class="steps">
+        <div class="step">Find the two closest points that belong to <i>opposite</i> classes — these are your support vectors (unless the question already tells you which points they are).</div>
+        <div class="step">The boundary passes through the <b>midpoint</b> of those two points and is <b>perpendicular</b> to the line joining them.</div>
+        <div class="step">The direction from one support vector to the other gives you the (unscaled) weight vector <span class="math">w</span>.</div>
+        <div class="step">Pick the sign of w so that the positive-class support vector gives a positive value, then <b>rescale</b> w and b so both support vectors satisfy <span class="math">y·(w·x+b) = 1</span> exactly (this is the "canonical form").</div>
+        <div class="step">Margin width = <span class="math">2/‖w‖</span>. This should equal the straight-line distance between your two support vectors — great way to sanity-check your own arithmetic in the exam.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>Training data: P1(2,3)=+1, P2(3,3)=+1, P3(4,1)=−1, P4(5,1)=−1. Assume only P2 and P3 are support vectors.</p>
+    <details>
+      <summary>Show full solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">Distance P2–P3 = √((4−3)²+(1−3)²) = √5 = 2.236 (check: this is smaller than any other cross-class pair, confirming they're the support vectors).</div>
+          <div class="step">Midpoint = ((3+4)/2, (3+1)/2) = <b>(3.5, 2)</b>.</div>
+          <div class="step">Direction P2→P3 = (4−3, 1−3) = (1,−2). Try w=(1,−2): f(P2)=1(3)−2(3)=−3 → wrong sign (P2 should be positive). Flip: <b>w=(−1,2)</b>, and solve b from the midpoint lying on the boundary: −1(3.5)+2(2)+b=0 → b=−0.5.</div>
+          <div class="step">Check: f(P2)=−3+6−0.5=2.5 (positive ✓), f(P3)=−4+2−0.5=−2.5 (negative ✓). Now rescale so y·f=1: scale factor = 1/2.5 = 0.4. So <b>w=(−0.4, 0.8), b=−0.2</b>.</div>
+          <div class="step">‖w‖=√(0.16+0.64)=√0.8=0.894. <b>Margin width = 2/0.894 = 2.236</b> — matches the P2–P3 distance from step 1. ✅ arithmetic confirmed.</div>
+        </div>
+        <div class="answer-box"><b>Decision function: f(x) = −0.4x₁ + 0.8x₂ − 0.2</b>. A new point is class +1 if f(x)>0, else −1.</div>
+      </div>
+    </details>
+  </div>
+
+  <details>
+    <summary>Other SVM sub-topics that have appeared (skim these)</summary>
+    <div class="inner">
+      <ul>
+        <li><b>Soft margin / slack variables:</b> used when data isn't perfectly separable; parameter <span class="math">C</span> trades off margin width vs misclassification penalty. High C = fits training data tightly (risk of overfitting); low C = wider margin, tolerates more errors.</li>
+        <li><b>KKT conditions / Lagrangian duals:</b> a point is a support vector exactly when its Lagrange multiplier <span class="math">αᵢ &gt; 0</span>. Points with <span class="math">αᵢ=0</span> don't affect the boundary at all — this is "complementary slackness," not a bug in the solver.</li>
+        <li><b>Kernel trick:</b> when data isn't linearly separable in the original space, a kernel like <span class="math">K(x,z)=(xᵀz+c)^d</span> (polynomial) or <span class="math">K(x,z)=exp(−‖x−z‖²/2σ²)</span> (RBF/Gaussian) implicitly maps points to a higher dimension where a straight line CAN separate them — without ever computing the mapping explicitly.</li>
+      </ul>
+    </div>
+  </details>
+  <p class="src">Seen in: March-2026 Regular Q5 &amp; Q7, 2023-24 Makeup Q2, Sample QP Q2, 2021 papers Q2</p>
+</div>
+
+<!-- ============ TOPIC 4: ENSEMBLES ============ -->
+<div class="topic" id="ens">
+  <h2><span class="dot" style="background:var(--ens)"></span>④ Ensemble Learning — Bagging / Random Forest / Boosting <span class="odds">High probability tomorrow</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — asking a panel instead of one doctor:</b> One doctor might misdiagnose you, but if you ask 5 independent doctors and go with the majority opinion, you're far less likely to be wrong overall — <i>as long as the doctors aren't all making the same mistake</i>. <b>Bagging</b> gets diversity by giving each doctor a slightly different (randomly resampled) set of patient records to learn from. <b>Random Forest</b> goes further — it also blindfolds each doctor to a random subset of symptoms, forcing them to develop different specialities. <b>AdaBoost</b> is different: it's like a study group where after every round, the group specifically drills the questions everyone got wrong — each new "weak learner" focuses more on the previously-misclassified cases.
+  </div>
+
+  <details open>
+    <summary>The three calculations that repeat every year</summary>
+    <div class="inner">
+      <p><b>A) Majority-vote ensemble accuracy/error</b> — if you combine n independent classifiers each with accuracy p, and majority wins:</p>
+      <pre>P(ensemble correct) = Σ (for k = majority-threshold to n) C(n,k) · pᵏ · (1−p)ⁿ⁻ᵏ</pre>
+
+      <p><b>B) AdaBoost weight update</b> — given current weights wᵢ and a weak learner's right/wrong calls:</p>
+      <div class="steps">
+        <div class="step">Weighted error <span class="math">ε = Σ wᵢ</span> over misclassified points only.</div>
+        <div class="step">Learner's voting power <span class="math">α = ½ ln((1−ε)/ε)</span>.</div>
+        <div class="step">New weight for each point: multiply by <span class="math">e^{−α}</span> if correctly classified (weight shrinks), or <span class="math">e^{+α}</span> if misclassified (weight grows).</div>
+        <div class="step">Renormalize all weights so they sum to 1.</div>
+      </div>
+
+      <p><b>C) Random Forest vs Bagging</b> — the one extra sentence examiners want: Random Forest adds <i>feature</i> subsampling at every split (not just row subsampling like Bagging), which decorrelates the trees further and reduces variance more.</p>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question — part A (majority voting)</h4>
+    <p>5 independent classifiers each have accuracy 0.6. Predictions are combined by majority vote. What is the ensemble's accuracy?</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <p>Need at least 3 of 5 correct (p=0.6):</p>
+        <p><span class="math">P(3)=C(5,3)(0.6)³(0.4)²=10×0.216×0.16=0.3456</span><br>
+        <span class="math">P(4)=C(5,4)(0.6)⁴(0.4)¹=5×0.1296×0.4=0.2592</span><br>
+        <span class="math">P(5)=(0.6)⁵=0.0778</span></p>
+        <div class="answer-box"><b>Ensemble accuracy = 0.3456+0.2592+0.0778 ≈ 68.3%</b> — a solid +8.3 point jump over any single classifier, purely from combining independent votes. Always finish this kind of question with one line like this comparing it back to the individual accuracy — that's usually where the last mark is hiding.</div>
+      </div>
+    </details>
+
+    <h4 style="margin-top:16px;">🆕 New practice question — part B (AdaBoost)</h4>
+    <p>4 samples with current weights [0.2, 0.1, 0.4, 0.3], true labels [+1,+1,−1,−1]. A weak learner predicts [+1,−1,−1,+1] (so samples 2 and 4 are misclassified). Find ε, α, and the renormalized new weights.</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">ε = w₂+w₄ = 0.1+0.3 = <b>0.4</b>.</div>
+          <div class="step">α = ½ ln(0.6/0.4) = ½ ln(1.5) = ½(0.405) = <b>0.203</b>.</div>
+          <div class="step">Correct samples (1,3) ×e⁻⁰·²⁰³=0.816: w1=0.2×0.816=0.163, w3=0.4×0.816=0.327.</div>
+          <div class="step">Wrong samples (2,4) ×e⁺⁰·²⁰³=1.225: w2=0.1×1.225=0.122, w4=0.3×1.225=0.368.</div>
+          <div class="step">Sum=0.163+0.122+0.327+0.368=0.980 → normalize by dividing each by 0.980.</div>
+        </div>
+        <div class="answer-box"><b>New weights ≈ [0.167, 0.125, 0.333, 0.375]</b> — notice sample 4 (already the heaviest, and misclassified again) grows the most: AdaBoost is telling the next weak learner "focus hardest on sample 4."</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: March-2026 Regular Q3 &amp; Makeup Q4, 2024-25 Regular Q6b, Sample QP Q4</p>
+</div>
+
+<!-- ============ TOPIC 5: CLUSTERING ============ -->
+<div class="topic" id="uns">
+  <h2><span class="dot" style="background:var(--uns)"></span>⑤ Unsupervised Learning — K-Means &amp; GMM/EM <span class="odds">Moderate-high probability</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — sorting a mixed bag of candy without labels:</b> Someone dumps a bag of mixed candy on the table and says "sort these into 2 groups, no labels given." You'd naturally pick 2 rough "centers," put each candy in whichever group it's closest to, then recompute the center of each pile, and repeat. That's exactly <b>K-Means</b>. The catch: K-Means forces every candy into exactly ONE pile, even if it's kind of in between. <b>GMM (Gaussian Mixture Model)</b> is the more open-minded version — instead of a hard decision, it gives each candy a <i>percentage belief</i> of belonging to each pile (e.g. "70% pile A, 30% pile B"), and also lets each pile have its own "shape" (spread), not just a center point.
+  </div>
+
+  <details open>
+    <summary>The K-Means "one iteration" recipe</summary>
+    <div class="inner">
+      <div class="steps">
+        <div class="step">Compute the distance from every point to every current centroid.</div>
+        <div class="step">Assign each point to its nearest centroid (hard assignment).</div>
+        <div class="step">Recompute each centroid as the mean of the points now assigned to it.</div>
+        <div class="step">(If asked for multiple iterations) repeat until centroids stop moving.</div>
+      </div>
+      <p style="margin-top:8px;"><b>GMM's E-step/M-step</b> is the same idea but soft: E-step computes a "responsibility" γ (a probability, using the Gaussian density formula from the Naive Bayes section, for each point-cluster pair); M-step recomputes each cluster's mean, variance, and mixing weight as a <i>weighted</i> average using those responsibilities instead of hard 0/1 membership.</p>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>Points: A(1,1), B(1,2), C(4,4), D(5,5), E(4,5). Initial centroids: C1=(1,1), C2=(5,5). Run one K-Means iteration.</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">A(1,1): d(C1)=0, d(C2)=5.66 → Cluster 1. B(1,2): d(C1)=1, d(C2)=5.0 → Cluster 1.</div>
+          <div class="step">C(4,4): d(C1)=4.24, d(C2)=1.41 → Cluster 2. D(5,5): d(C1)=5.66, d(C2)=0 → Cluster 2. E(4,5): d(C1)=5.0, d(C2)=1.0 → Cluster 2.</div>
+          <div class="step">New centroid 1 = mean of {A,B} = (1, 1.5).</div>
+          <div class="step">New centroid 2 = mean of {C,D,E} = (4.33, 4.67).</div>
+        </div>
+        <div class="answer-box"><b>Cluster 1 = {A,B}, new centroid (1, 1.5). Cluster 2 = {C,D,E}, new centroid (4.33, 4.67).</b> If asked "has it converged?" — run one more iteration with these new centroids; if no point switches clusters, it has converged.</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: March-2026 Regular Q6, 2023-24 Makeup Q4 (K-Modes variant), Sample QP Q3 (GMM/EM)</p>
+</div>
+
+<!-- ============ TOPIC 6: MODEL EVALUATION ============ -->
+<div class="topic" id="eval">
+  <h2><span class="dot" style="background:var(--eval)"></span>⑥ Model Evaluation &amp; Comparison <span class="odds">Moderate-high probability</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — a smoke detector:</b> Precision asks: "of all the times the alarm went off, how often was there actually a fire?" (avoiding false alarms matters). Recall asks: "of all the actual fires, how many did the alarm catch?" (avoiding missed fires matters). You can't always max out both — a hyper-sensitive detector catches every fire (high recall) but also screams at burnt toast constantly (low precision). Which one matters more depends on the cost of each type of mistake — that's the exam's favourite follow-up question ("which is more important here, and why?").
+  </div>
+
+  <details open>
+    <summary>The 4 formulas + one worked confusion matrix</summary>
+    <div class="inner">
+      <pre>Accuracy  = (TP+TN) / (TP+TN+FP+FN)
+Precision = TP / (TP+FP)      "of predicted positives, how many were right"
+Recall    = TP / (TP+FN)      "of actual positives, how many did we catch"
+F1        = 2 · Precision · Recall / (Precision + Recall)</pre>
+      <p><b>Rule of thumb for "which matters more" questions:</b> if missing a positive case is costly/dangerous (disease, fraud, spam that hides an important email) → prioritize <b>Recall</b>. If a false alarm is costly/annoying (flagging a genuine email as spam, wrongly accusing someone) → prioritize <b>Precision</b>.</p>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>A fraud-detection model gives this confusion matrix on 200 transactions: TP=80, FP=20, FN=10, TN=90. Compute Accuracy, Precision, Recall, F1.</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">Accuracy = (80+90)/200 = <b>0.85</b></div>
+          <div class="step">Precision = 80/(80+20) = <b>0.80</b></div>
+          <div class="step">Recall = 80/(80+10) = <b>0.889</b></div>
+          <div class="step">F1 = 2×0.80×0.889/(0.80+0.889) = 1.422/1.689 = <b>0.842</b></div>
+        </div>
+        <div class="answer-box">Since this is <b>fraud detection</b>, missing an actual fraud (FN) is usually more costly than a false alarm (FP) — so Recall (0.889) being high is reassuring, but you'd still tell the bank "10 real frauds were missed; consider lowering the classification threshold to catch more, accepting a few extra false alarms."</div>
+      </div>
+    </details>
+  </div>
+
+  <details>
+    <summary>Other Model Evaluation talking points seen in your papers</summary>
+    <div class="inner">
+      <ul>
+        <li><b>Multicollinearity</b> (two input features highly correlated, e.g. "call minutes" & "number of calls"): doesn't hurt predictions much, but wrecks interpretability — coefficients become unstable/misleading. Fix: drop one feature, combine them, or use Ridge (L2) regularization.</li>
+        <li><b>Learning-rate-too-high in gradient descent:</b> spotted from a cost-function curve that <i>diverges/oscillates</i> instead of smoothly decreasing.</li>
+        <li><b>Classification threshold shift</b> (e.g. 0.5 → 0.9): raising the threshold → fewer positive predictions → Recall drops, Precision rises (fewer false alarms, but more missed positives).</li>
+      </ul>
+    </div>
+  </details>
+  <p class="src">Seen in: 2024-25 Regular Q2, 2023-24 Regular Q3 &amp; Q2, 2024-25 Makeup Q1c, Sample QP for students</p>
+</div>
+
+<!-- ============ TOPIC 7: REGULARIZATION ============ -->
+<div class="topic" id="reg">
+  <h2><span class="dot" style="background:var(--reg)"></span>⑦ Regularization &amp; Bias-Variance (Ridge/Lasso) <span class="odds">Appeared in recent papers</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — a dog on a leash:</b> A model's weights are like a dog exploring a park. With no leash (λ=0), the dog runs wild, chasing every squirrel (every tiny quirk in the training data) — that's <b>overfitting / high variance</b>. A very short, tight leash (λ huge) barely lets the dog move at all — it stays near you no matter what, ignoring even genuinely interesting things — that's <b>underfitting / high bias</b>. The right leash length lets the dog explore usefully without running off a cliff. λ is the leash length.
+  </div>
+
+  <details open>
+    <summary>Ridge vs Lasso — the one-line difference that gets asked every year</summary>
+    <div class="inner">
+      <p><b>Ridge (L2):</b> penalty = λΣw². Shrinks weights smoothly toward zero, but <i>never exactly to zero</i> — every feature stays in the model, just weakened. Good when many features are all a little useful and correlated.</p>
+      <p><b>Lasso (L1):</b> penalty = λΣ|w|. Can push weights <i>exactly</i> to zero → performs automatic feature selection. Good when you believe only a handful of features actually matter (sparse model).</p>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>Data (x,y): (1,2), (2,3), (3,5). Fit y=wx (line through the origin) minimizing <span class="math">J(w)=Σ(y−wx)² + λw²</span>. Find w for λ=0, λ=5, and λ=50.</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <div class="steps">
+          <div class="step">Take dJ/dw=0 → <span class="math">w = Σxy / (Σx² + λ)</span>.</div>
+          <div class="step">Σxy = 1(2)+2(3)+3(5) = 2+6+15 = <b>23</b>. Σx² = 1+4+9 = <b>14</b>.</div>
+          <div class="step">λ=0: w = 23/14 = <b>1.643</b> (plain least squares — no shrinkage).</div>
+          <div class="step">λ=5: w = 23/19 = <b>1.211</b> (mild shrink).</div>
+          <div class="step">λ=50: w = 23/64 = <b>0.359</b> (heavy shrink — model barely trusts x anymore).</div>
+        </div>
+        <div class="answer-box">As λ grows, w shrinks toward 0 — exactly the "leash" analogy. At λ=0 you get low bias/high variance; at λ=50 you get high bias/low variance. There's no single "right" λ in general — it's chosen by validation performance.</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: March-2026 Makeup Q1, Sample QP (Lasso regularization question)</p>
+</div>
+
+<!-- ============ TOPIC 8: DECISION TREES ============ -->
+<div class="topic" id="dt">
+  <h2><span class="dot" style="background:var(--dt)"></span>⑧ Decision Trees — Overfitting &amp; Pruning <span class="odds">Frequently a sub-part</span></h2>
+
+  <div class="analogy">
+    <b>Analogy — memorizing vs understanding for an exam:</b> A tiny decision tree is like a student who only learns 2 broad rules — okay but misses nuance. A giant, unpruned tree is like a student who memorizes the <i>exact wording</i> of every practice question, including typos — they'll ace the practice set (training accuracy near 100%) but fall apart the moment the real exam phrases something slightly differently (test accuracy drops). <b>Pruning</b> is forcing the student to stop memorizing and instead learn general rules that transfer.
+  </div>
+
+  <details open>
+    <summary>Key facts your papers keep testing</summary>
+    <div class="inner">
+      <ul>
+        <li>Training accuracy is <b>NOT</b> an unbiased estimate of true accuracy — the tree has already "seen the answers."</li>
+        <li>More nodes/depth → training accuracy keeps climbing, but test accuracy rises, peaks, then <i>falls</i> — the peak is the sweet spot to pick.</li>
+        <li><b>Pre-pruning strategies</b> (stop the tree early): max depth limit, minimum samples required to split a node, maximum number of leaf nodes, minimum information-gain/Gini-improvement threshold to allow a split.</li>
+        <li><b>Gini impurity of a child node vs its parent:</b> a good split always makes children <i>purer</i>, so child Gini is generally <b>lower</b> than the parent's, never higher (a common "True/False" trap).</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="practice">
+    <h4>🆕 New practice question</h4>
+    <p>Four trees of increasing size were trained. Their accuracies: 5 nodes → train 70%/test 68%; 10 nodes → train 82%/test 80%; 20 nodes → train 91%/test 74%; 50 nodes → train 99%/test 65%. Which tree would you deploy, and why? Name 2 pre-pruning strategies you'd use to get that size automatically.</p>
+    <details>
+      <summary>Show solution</summary>
+      <div class="inner">
+        <div class="answer-box"><b>Deploy the 10-node tree</b> — it has the highest <i>test</i> accuracy (80%). Beyond 10 nodes, training accuracy keeps rising but test accuracy falls (91%→74%→99%/65%) — a textbook overfitting curve. Two pre-pruning strategies to enforce this automatically: (1) set <i>max_depth</i> or <i>max_leaf_nodes</i> so the tree can't grow past roughly this size, and (2) set a <i>minimum information-gain threshold</i> so splits that don't meaningfully help are rejected.</div>
+      </div>
+    </details>
+  </div>
+  <p class="src">Seen in: 2024-25 Regular Q1, 2024-25 Makeup Q1a &amp; Q8, 2023-24 Regular Q2a</p>
+</div>
+
+<!-- ============ CHEAT SHEET ============ -->
+<div class="panel" id="cheat">
+  <h2>📎 30-second formula sheet</h2>
+  <div class="cheat">
+    <div class="cheatcard"><h4>Naive Bayes (Gaussian)</h4><span class="math">P(x|c)=1/√(2πσ²)·e^(−(x−μ)²/2σ²)</span></div>
+    <div class="cheatcard"><h4>Naive Bayes (Laplace smoothing)</h4><span class="math">P(w|c)=(count+1)/(total+|V|)</span></div>
+    <div class="cheatcard"><h4>Weighted k-NN</h4><span class="math">weight = 1/d²</span>, sum weights per class</div>
+    <div class="cheatcard"><h4>SVM margin</h4><span class="math">margin = 2/‖w‖</span>, canonical: <span class="math">y(w·x+b)=1</span></div>
+    <div class="cheatcard"><h4>AdaBoost</h4><span class="math">α=½ln((1−ε)/ε)</span>, wrong×e^α, right×e^(−α)</div>
+    <div class="cheatcard"><h4>Majority vote</h4><span class="math">P(correct)=Σ C(n,k)pᵏ(1−p)ⁿ⁻ᵏ</span> for k≥majority</div>
+    <div class="cheatcard"><h4>Precision / Recall / F1</h4>TP/(TP+FP) · TP/(TP+FN) · 2PR/(P+R)</div>
+    <div class="cheatcard"><h4>Ridge closed-form (1D, through origin)</h4><span class="math">w=Σxy/(Σx²+λ)</span></div>
+    <div class="cheatcard"><h4>K-Means</h4>assign → nearest centroid → recompute mean → repeat</div>
+    <div class="cheatcard"><h4>Gower distance</h4>average of per-attribute distances (numeric: normalized |diff|; categorical: 0/1 match)</div>
+  </div>
+</div>
+
+<!-- ============ TIPS ============ -->
+<div class="footer-tips" id="tips">
+  <h2>🎯 Tonight &amp; tomorrow game plan</h2>
+  <ul>
+    <li><b>Don't try to "master" everything tonight.</b> Naive Bayes, k-NN, and SVM alone have shown up in <i>every single paper</i> — if you only have energy for 3 topics, make it those.</li>
+    <li><b>The exam is Open Book</b> (per the header on your papers) — so don't waste time memorizing formulas word-for-word. Instead, practice <i>recognizing which formula applies to which wording</i> — that's the actual bottleneck under time pressure, not recall.</li>
+    <li><b>Show every intermediate step</b> — nearly every marking scheme in your papers gives partial credit per step (e.g. "1 mark for distance table, 1 mark for final vote"), even when the final answer is wrong.</li>
+    <li><b>Recent papers (2024-26) wrap everything in a business story</b> (bank/telecom/fintech). Don't get distracted by the story — underline the numbers, identify which of the 8 topics above it's really testing, and go straight to that recipe.</li>
+    <li><b>Always end computational answers with one plain-English sentence</b> stating the final decision/class/value clearly — several marking schemes specifically reserve a mark just for stating the conclusion.</li>
+    <li><b>Round consistently</b> (papers often say "round to 4 decimal places" or similar) — pick a precision and stick with it through a whole question.</li>
+    <li>Get some sleep. A tired brain misreads "minimize" as "maximize" far more often than it forgets a formula.</li>
+  </ul>
+</div>
+
+<p style="text-align:center;color:var(--muted);font-size:0.8rem;margin-top:10px;">Built from your Drive files: 2021/2023-24/2024-25/March-2026 Regular &amp; Makeup papers, and the Sample QP pattern sheet. Good luck tomorrow — you've got this. 💪</p>
+
+</div>
+</body>
+</html>
